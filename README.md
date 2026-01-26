@@ -6,10 +6,10 @@ Multimodal media analysis and image generation via Google Gemini 3.
 
 ```bash
 # Via uvx (ephemeral)
-uvx --from git+https://github.com/YOURUSER/gemini-media gemini-media --help
+uvx --from git+https://github.com/cs50victor/gemini-media gemini-media --help
 
 # Via uv (permanent)
-uv tool install git+https://github.com/YOURUSER/gemini-media
+uv tool install git+https://github.com/cs50victor/gemini-media
 ```
 
 ## Usage
@@ -43,7 +43,7 @@ Claude Code config (`~/.claude/settings.json`):
   "mcpServers": {
     "gemini-media": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/YOURUSER/gemini-media", "gemini-media", "mcp"],
+      "args": ["--from", "git+https://github.com/cs50victor/gemini-media", "gemini-media", "mcp"],
       "env": {
         "GEMINI_API_KEY": "your-api-key",
         "GEMINI_MEDIA_GCS_BUCKET": "your-bucket"
