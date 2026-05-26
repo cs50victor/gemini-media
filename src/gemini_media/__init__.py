@@ -1,3 +1,3 @@
-"""gemini-media: Multimodal understanding and generation via Gemini 3."""
+"""gemini-media: local MCP server for Gemini native multimodal models."""
 
 __version__ = "0.1.0"

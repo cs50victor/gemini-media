@@ -5,19 +5,18 @@ build-backend = "hatchling.build"
 [project]
 name = "gemini-media"
 version = "0.1.0"
-description = "Multimodal media analysis and image generation via Google Gemini 3"
+description = "Local MCP server for the latest Gemini native multimodal models"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
 dependencies = [
     "google-genai>=1.0",
     "google-cloud-storage>=2.0",
-    "click>=8.0",
     "fastmcp>=2.0",
 ]
 
 [project.scripts]
-gemini-media = "gemini_media.cli:main"
+gemini-media = "gemini_media.server:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/gemini_media"]
