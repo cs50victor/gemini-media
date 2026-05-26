@@ -1,9 +1,9 @@
 """
-gemini-media: Multimodal understanding via Gemini 3
+gemini-media: Multimodal understanding via Gemini 3.1
 
 Modes:
 - CLI: gemini-media <source> -m <model> [-p "prompt"]
-- MCP: gemini-media mcp
+- MCP: gemini-media mcp (local stdio only)
 
 Supports:
 - YouTube URLs (passed directly to Gemini)
@@ -28,10 +28,9 @@ from fastmcp import FastMCP
 CACHE_DIR = Path.home() / ".cache" / "gemini-media"
 DEFAULT_GCS_BUCKET = None  # Must set GEMINI_MEDIA_GCS_BUCKET env var
 GEMINI_3_MODELS = [
-    "gemini-3-pro-preview",
-    "gemini-3-flash-preview",
+    "gemini-3.1-pro-preview",
 ]
-IMAGE_GENERATION_MODEL = "gemini-3-pro-image-preview"
+IMAGE_GENERATION_MODEL = "gemini-3.1-pro-image-preview"
 IMAGE_SIZES = ["1K", "2K", "4K"]
 ASPECT_RATIOS = ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"]
 
@@ -129,7 +128,8 @@ def upload_to_gcs(file_path: Path, bucket_name: str, verbose: bool = True) -> st
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
 
-    file_hash = hashlib.sha256(file_path.read_bytes()).hexdigest()[:16]
+    with open(file_path, "rb") as f:
+        file_hash = hashlib.file_digest(f, "sha256").hexdigest()[:16]
     blob_name = f"gemini-media/{file_hash}{file_path.suffix.lower()}"
 
     blob = bucket.blob(blob_name)
@@ -259,7 +259,14 @@ def process_youtube(client, url: str, prompt: str, model: str) -> str:
     return response.text
 
 
-def process_local_file(client, file_path: Path, prompt: str, model: str, bucket_name: str, verbose: bool = True) -> str:
+def process_local_file(
+    client,
+    file_path: Path,
+    prompt: str,
+    model: str,
+    bucket_name: str,
+    verbose: bool = True,
+) -> tuple[str, str]:
     """Upload to GCS and process via Gemini using gs:// URI."""
     from google.genai import types
 
@@ -273,23 +280,23 @@ def process_local_file(client, file_path: Path, prompt: str, model: str, bucket_
             prompt,
         ],
     )
-    return response.text
+    return response.text, gcs_uri
 
 
 @mcp.tool
 def analyze_media(
     source: str,
     prompt: str = DEFAULT_PROMPT,
-    model: str = "gemini-3-flash-preview",
+    model: str = "gemini-3.1-pro-preview",
     no_cache: bool = False,
 ) -> dict:
     """
-    Analyze media using Gemini 3 multimodal capabilities.
+    Analyze media using Gemini 3.1 multimodal capabilities.
 
     Args:
-        source: YouTube URL or absolute path to local audio/video/image/PDF file
+        source: YouTube URL or absolute path to a file on the local MCP host
         prompt: Analysis prompt (default: comprehensive analysis)
-        model: gemini-3-pro-preview or gemini-3-flash-preview
+        model: gemini-3.1-pro-preview
         no_cache: Bypass cache and force fresh API call
     """
     from google import genai
@@ -323,12 +330,15 @@ def analyze_media(
 
     client = genai.Client(vertexai=True, api_key=api_key)
 
+    gcs_uri = None
     try:
         if is_youtube:
             response_text = process_youtube(client, source, prompt, model)
             source_type = "youtube"
         else:
-            response_text = process_local_file(client, file_path, prompt, model, bucket_name, verbose=False)
+            response_text, gcs_uri = process_local_file(
+                client, file_path, prompt, model, bucket_name, verbose=False
+            )
             source_type = get_source_type(file_path)
     except Exception as e:
         return {"error": str(e)}
@@ -341,6 +351,8 @@ def analyze_media(
         "response": response_text,
         "cached": False,
     }
+    if not is_youtube:
+        result["gcs_uri"] = gcs_uri
     save_cache(cache_key, result)
     return result
 
@@ -356,7 +368,7 @@ def clear_cache() -> dict:
 
 @mcp.tool
 def list_models() -> list[str]:
-    """List available Gemini 3 models."""
+    """List available Gemini 3.1 models."""
     return GEMINI_3_MODELS
 
 
@@ -369,7 +381,7 @@ def generate_image(
     count: int = 1,
 ) -> dict:
     """
-    Generate or edit images using Gemini 3 Pro (nano-banana-pro).
+    Generate or edit images using Gemini 3.1 Pro.
 
     Args:
         prompt: Text description or edit instruction
@@ -395,13 +407,13 @@ def generate_image(
 @click.pass_context
 def cli(ctx):
     """
-    Gemini Media: Multimodal understanding and generation via Gemini 3.
+    Gemini Media: Multimodal understanding and generation via Gemini 3.1.
 
     \b
     Commands:
         analyze   - Analyze media (YouTube URLs, audio, video, images, PDFs)
         generate  - Generate or edit images
-        mcp       - Run as MCP server
+        mcp       - Run as local stdio MCP server
 
     \b
     Legacy mode (backward compatible):
@@ -416,7 +428,7 @@ def cli(ctx):
     "--model", "-m",
     required=True,
     type=click.Choice(GEMINI_3_MODELS, case_sensitive=False),
-    help="Gemini 3 model to use",
+    help="Gemini 3.1 model to use",
 )
 @click.option(
     "--prompt", "-p",
@@ -435,11 +447,11 @@ def cli(ctx):
 )
 def analyze(source: str, model: str, prompt: str, no_cache: bool, raw: bool):
     """
-    Analyze media using Gemini 3 multimodal capabilities.
+    Analyze media using Gemini 3.1 multimodal capabilities.
 
     \b
     Usage: gemini-media <source> -m <model> [-p "prompt"]
-    Models: gemini-3-pro-preview, gemini-3-flash-preview
+    Models: gemini-3.1-pro-preview
     Source: YouTube URL or absolute path to local audio/video file.
     Caches to ~/.cache/gemini-media/
 
@@ -458,9 +470,9 @@ def analyze(source: str, model: str, prompt: str, no_cache: bool, raw: bool):
 
     \b
     Examples:
-        gemini-media "https://youtube.com/watch?v=..." -m gemini-3-flash-preview
-        gemini-media /path/to/recording.mp4 -m gemini-3-pro-preview -p "Summarize this"
-        gemini-media /path/to/meeting.mp3 -m gemini-3-flash-preview -p "List action items"
+        gemini-media "https://youtube.com/watch?v=..." -m gemini-3.1-pro-preview
+        gemini-media /path/to/recording.mp4 -m gemini-3.1-pro-preview -p "Summarize this"
+        gemini-media /path/to/meeting.mp3 -m gemini-3.1-pro-preview -p "List action items"
     """
     # Validate API key
     api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
@@ -506,12 +518,13 @@ def analyze(source: str, model: str, prompt: str, no_cache: bool, raw: bool):
     client = genai.Client(vertexai=True, api_key=api_key)
 
     # Process based on source type
+    gcs_uri = None
     try:
         if is_youtube:
             response_text = process_youtube(client, source, prompt, model)
             source_type = "youtube"
         else:
-            response_text = process_local_file(client, file_path, prompt, model, bucket_name)
+            response_text, gcs_uri = process_local_file(client, file_path, prompt, model, bucket_name)
             source_type = get_source_type(file_path)
 
     except Exception as e:
@@ -527,6 +540,9 @@ def analyze(source: str, model: str, prompt: str, no_cache: bool, raw: bool):
         "response": response_text,
         "cached": False,
     }
+    if not is_youtube:
+        result["gcs_uri"] = gcs_uri
+        click.echo(f"GCS: {gcs_uri}", err=True)
 
     # Save to cache
     save_cache(cache_key, result)
@@ -540,10 +556,10 @@ def analyze(source: str, model: str, prompt: str, no_cache: bool, raw: bool):
 
 @cli.command(name="mcp")
 def mcp_command():
-    """Run as MCP server (for Claude Code integration)."""
+    """Run as a local stdio MCP server."""
     import logging
     logging.getLogger("fastmcp").setLevel(logging.WARNING)
-    mcp.run(show_banner=False)
+    mcp.run(transport="stdio", show_banner=False)
 
 
 @cli.command()
@@ -579,7 +595,7 @@ def mcp_command():
 )
 def generate(source_or_prompt: str, prompt_if_editing: str | None, size: str, aspect: str, count: int, output: str | None, raw: bool):
     """
-    Generate or edit images using Gemini 3 Pro.
+    Generate or edit images using Gemini 3.1 Pro.
 
     \b
     Pure generation:

@@ -1,6 +1,6 @@
 # gemini-media
 
-Multimodal media analysis and image generation via Google Gemini 3.
+Multimodal media analysis and image generation via Google Gemini 3.1.
 
 ## Installation
 
@@ -18,11 +18,11 @@ uv tool install git+https://github.com/cs50victor/gemini-media
 
 ```bash
 # Analyze YouTube video
-gemini-media analyze "https://youtube.com/watch?v=..." -m gemini-3-flash-preview
+gemini-media analyze "https://youtube.com/watch?v=..." -m gemini-3.1-pro-preview
 
 # Analyze local file (requires GCS bucket for upload)
 export GEMINI_MEDIA_GCS_BUCKET="your-bucket"
-gemini-media analyze /path/to/video.mp4 -m gemini-3-pro-preview
+gemini-media analyze /path/to/video.mp4 -m gemini-3.1-pro-preview
 
 # Generate image
 gemini-media generate "A futuristic cityscape at sunset" -s 4K -a 16:9
@@ -30,11 +30,16 @@ gemini-media generate "A futuristic cityscape at sunset" -s 4K -a 16:9
 
 ### MCP Server
 
-Run as an MCP server for Claude Code integration:
+Run as a local stdio MCP server for MCP clients:
 
 ```bash
 gemini-media mcp
 ```
+
+This server is intentionally local-only. It reads absolute file paths from the
+same machine that starts the MCP process, uploads those files directly to GCS,
+then sends the resulting `gs://` URI to Gemini. It does not expose HTTP, SSE, or
+remote MCP transports.
 
 Claude Code config (`~/.claude/settings.json`):
 
