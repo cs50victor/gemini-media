@@ -1,6 +1,6 @@
 # gemini-media
 
-Local stdio MCP server for Gemini 3.1 media analysis and image generation.
+Local stdio MCP server for Gemini media analysis and image generation.
 
 ## Installation
 

@@ -1,5 +1,5 @@
 """
-gemini-media: local stdio MCP server for Gemini 3.1 media tools.
+gemini-media: local stdio MCP server for Gemini media tools.
 
 The MCP process runs on the same machine as the client. Local file inputs are
 read from that machine, uploaded to GCS, then passed to Gemini as gs:// URIs.
@@ -14,6 +14,7 @@ from fastmcp import FastMCP
 
 DEFAULT_GCS_BUCKET = None
 GEMINI_3_MODELS = [
+    "gemini-3.5-flash",
     "gemini-3.1-pro-preview",
 ]
 IMAGE_GENERATION_MODEL = "gemini-3.1-pro-image-preview"
@@ -236,15 +237,15 @@ def process_local_file(
 def analyze_media(
     source: str,
     prompt: str = DEFAULT_PROMPT,
-    model: str = "gemini-3.1-pro-preview",
+    model: str = "gemini-3.5-flash",
 ) -> dict:
     """
-    Analyze media using Gemini 3.1 multimodal capabilities.
+    Analyze media using Gemini multimodal capabilities.
 
     Args:
         source: YouTube URL or absolute path to a file on the local MCP host
         prompt: Analysis prompt
-        model: gemini-3.1-pro-preview
+        model: gemini-3.5-flash or gemini-3.1-pro-preview
     """
     from google import genai
 
@@ -297,7 +298,7 @@ def analyze_media(
 
 @mcp.tool
 def list_models() -> list[str]:
-    """List available Gemini 3.1 models."""
+    """List available Gemini media analysis models."""
     return GEMINI_3_MODELS
 
 
