@@ -12,12 +12,11 @@ license = "MIT"
 dependencies = [
     "google-genai>=1.0",
     "google-cloud-storage>=2.0",
-    "click>=8.0",
     "fastmcp>=2.0",
 ]
 
 [project.scripts]
-gemini-media = "gemini_media.cli:main"
+gemini-media = "gemini_media.server:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/gemini_media"]

@@ -1,12 +1,12 @@
 # gemini-media
 
-Multimodal media analysis and image generation via Google Gemini 3.1.
+Local stdio MCP server for Gemini 3.1 media analysis and image generation.
 
 ## Installation
 
 ```bash
 # Via uvx (ephemeral)
-uvx --from git+https://github.com/cs50victor/gemini-media gemini-media --help
+uvx --from git+https://github.com/cs50victor/gemini-media gemini-media
 
 # Via uv (permanent)
 uv tool install git+https://github.com/cs50victor/gemini-media
@@ -14,26 +14,10 @@ uv tool install git+https://github.com/cs50victor/gemini-media
 
 ## Usage
 
-### CLI
-
-```bash
-# Analyze YouTube video
-gemini-media analyze "https://youtube.com/watch?v=..." -m gemini-3.1-pro-preview
-
-# Analyze local file (requires GCS bucket for upload)
-export GEMINI_MEDIA_GCS_BUCKET="your-bucket"
-gemini-media analyze /path/to/video.mp4 -m gemini-3.1-pro-preview
-
-# Generate image
-gemini-media generate "A futuristic cityscape at sunset" -s 4K -a 16:9
-```
-
-### MCP Server
-
 Run as a local stdio MCP server for MCP clients:
 
 ```bash
-gemini-media mcp
+gemini-media
 ```
 
 This server is intentionally local-only. It reads absolute file paths from the
@@ -48,7 +32,7 @@ Claude Code config (`~/.claude/settings.json`):
   "mcpServers": {
     "gemini-media": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/cs50victor/gemini-media", "gemini-media", "mcp"],
+      "args": ["--from", "git+https://github.com/cs50victor/gemini-media", "gemini-media"],
       "env": {
         "GEMINI_API_KEY": "your-api-key",
         "GEMINI_MEDIA_GCS_BUCKET": "your-bucket"
@@ -64,6 +48,12 @@ Claude Code config (`~/.claude/settings.json`):
 |----------|----------|-------------|
 | `GEMINI_API_KEY` or `GOOGLE_API_KEY` | Yes | Google AI API key |
 | `GEMINI_MEDIA_GCS_BUCKET` | For local files | GCS bucket for uploading local media |
+
+## MCP Tools
+
+- `analyze_media` - analyze a YouTube URL or absolute local media path
+- `generate_image` - generate or edit images
+- `list_models` - list supported Gemini models
 
 ## Supported Media
 
