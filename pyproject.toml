@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "gemini-media"
 version = "0.1.0"
-description = "Multimodal media analysis and image generation via Google Gemini"
+description = "Local MCP server for the latest Gemini native multimodal models"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"

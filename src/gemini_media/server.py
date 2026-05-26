@@ -1,5 +1,5 @@
 """
-gemini-media: local stdio MCP server for Gemini media tools.
+gemini-media: local stdio MCP server for Gemini native multimodal models.
 
 The MCP process runs on the same machine as the client. Local file inputs are
 read from that machine, uploaded to GCS, then passed to Gemini as gs:// URIs.
@@ -240,7 +240,7 @@ def analyze_media(
     model: str = "gemini-3.5-flash",
 ) -> dict:
     """
-    Analyze media using Gemini multimodal capabilities.
+    Analyze media using Gemini native multimodal capabilities.
 
     Args:
         source: YouTube URL or absolute path to a file on the local MCP host
@@ -311,7 +311,7 @@ def generate_image(
     count: int = 1,
 ) -> dict:
     """
-    Generate or edit images using Gemini 3.1 Pro.
+    Generate or edit images using Gemini native multimodal capabilities.
 
     Args:
         prompt: Text description or edit instruction
